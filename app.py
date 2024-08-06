@@ -5,6 +5,9 @@ import plotly.express as px
 from sklearn.linear_model import LinearRegression
 import plotly.graph_objs as go
 import datetime
+import gspread
+import os
+import json
 
 # Define a function to load the dataset from CSV
 @st.cache_data
@@ -12,6 +15,35 @@ def load_dataset():
     df = pd.read_csv('dados_nutri.csv')
     df['Data'] = df['Data'].astype('datetime64')
     return df
+
+@st.cache_data
+def load_spreadsheet():
+    gspread_credentials_str = os.getenv("GSPREAD_CREDENTIALS")
+    # gspread_credentials_str = st.secrets("GSPREAD_CREDENTIALS")
+    gspread_credentials_dic = json.loads(gspread_credentials_str)
+    gc = gspread.service_account_from_dict(gspread_credentials_dic)
+    sheet_url = os.getenv("GSPREAD_URL")
+    # print(sheet_url)
+    pasta = gc.open_by_url(sheet_url)
+    planilha = pasta.worksheet('dados_nutri')
+
+    colunas = planilha.get_all_values().pop(0)
+    df = pd.DataFrame(data=planilha.get_all_values(), columns=colunas)
+    df.drop(index=0, inplace=True)
+    df.reset_index(inplace=True)
+    df['Data'] = df['Data'].astype('datetime64')
+
+    return df
+
+def add_row_spreadsheet(new_data_list):
+    gspread_credentials_str = os.getenv("GSPREAD_CREDENTIALS")
+    # gspread_credentials_str = st.secrets("GSPREAD_CREDENTIALS")
+    gspread_credentials_dic = json.loads(gspread_credentials_str)
+    gc = gspread.service_account_from_dict(gspread_credentials_dic)
+    sheet_url = os.getenv("GSPREAD_URL")
+    pasta = gc.open_by_url(sheet_url)
+    planilha = pasta.worksheet('dados_nutri')
+    planilha.append_row(values=new_data_list)
 
 # Define a function to update the dataset by adding a row
 def add_row(dataset, new_row):
@@ -21,7 +53,8 @@ def add_row(dataset, new_row):
 # Check if the dataset is already loaded in the session state
 if 'df' not in st.session_state:
     # Load the dataset from CSV and store it in the session state
-    st.session_state.df = load_dataset()
+    # st.session_state.df = load_dataset()
+    st.session_state.df = load_spreadsheet()
 
 
 st.title('Avaliações físicas - Evolução')
@@ -36,28 +69,65 @@ with tab1:
     #global df
 
     data = st.date_input("Data da avaliação:", datetime.date.today())
-    peso = st.number_input("Digite o peso:")
-    musc_perc = st.number_input("Digite o percentual de músculo:")
-    musc_kg = peso * musc_perc * 0.01
+    peso = st.number_input("Digite o peso (kg):")
+    massa_magra_perc = st.number_input("Digite o percentual de massa magra:")
+    massa_magra_kg = peso * massa_magra_perc * 0.01
     fat_perc = st.number_input("Digite o percentual de gordura:")
     fat_kg = peso * fat_perc * 0.01
+    musc_perc = st.number_input("Digite o percentual de músculo:")
+    musc_kg = peso * musc_perc * 0.01
+    gord_visc_ind = st.number_input("Digite o índice de gordura visceral:")
+    
+    braco_esq_cm = st.number_input("Digite a circunferência do braço esquerdo (cm):")
+    braco_dir_cm = st.number_input("Digite a circunferência do braço direito (cm):")
+    perna_esq_cm = st.number_input("Digite a circunferência da perna esquerda (cm):")
+    perna_dir_cm = st.number_input("Digite a circunferência da perna direita (cm):")
+    pant_esq_cm = st.number_input("Digite a circunferência da panturrilha esquerda (cm):")
+    pant_dir_cm = st.number_input("Digite a circunferência da panturrilha direita (cm):")
+    torax_cm = st.number_input("Digite a circunferência do tórax (cm):")
+    cintura_cm = st.number_input("Digite a circunferência da cintura (cm):")
+    circ_abdom_cm = st.number_input("Digite a circunferência do abdômen (cm):")
+    quadril_cm = st.number_input("Digite a circunferência do quadril (cm):")
+
 
     if st.button('Inserir dados'):
         #st.write(f'Tipo da data: {type(data)}; Tipo do peso: {type(peso)}, colunas: {df.columns}')
         # 'Data', 'Peso_kg', 'Massa_magra_percent', 'Massa_magra_kg', 'Gordura_percent', 'Gordura_kg', 'Musculo_percent', 'Musculo_kg', 'Gord_visceral_ind', 'Circ_abdom_cm', 'Braco_esq_cm', 'Braço_dir_cm', 'Perna_esq_cm', 'Perna_dir_cm', 'Pant_esq_cm', 'Pant_dir_cm', 'Torax_cm', 'Cintura_cm', 'Abdomen_cm', 'Quadril_cm'
-        st.session_state.df = st.session_state.df.append({'Data': data, 'Peso_kg': peso, 'Massa_magra_percent': np.nan, 'Massa_magra_kg': np.nan,
+        new_data_dic = {'Data': data, 'Peso_kg': peso, 'Massa_magra_percent': massa_magra_perc, 'Massa_magra_kg': massa_magra_kg,
                         'Gordura_percent': fat_perc, 'Gordura_kg': fat_kg, 'Musculo_percent': musc_perc, 'Musculo_kg': musc_kg,
-                        'Gord_visceral_ind': np.nan, 'Circ_abdom_cm': np.nan, 'Braco_esq_cm': np.nan, 'Braço_dir_cm': np.nan,
-                        'Perna_esq_cm': np.nan, 'Perna_dir_cm': np.nan, 'Pant_esq_cm': np.nan, 'Pant_dir_cm': np.nan,
-                        'Torax_cm': np.nan, 'Cintura_cm': np.nan, 'Abdomen_cm': np.nan, 'Quadril_cm': np.nan}, ignore_index=True)
+                        'Gord_visceral_ind': gord_visc_ind, 'Circ_abdom_cm': circ_abdom_cm, 'Braco_esq_cm': braco_esq_cm, 'Braço_dir_cm': braco_dir_cm,
+                        'Perna_esq_cm': perna_esq_cm, 'Perna_dir_cm': perna_dir_cm, 'Pant_esq_cm': pant_esq_cm, 'Pant_dir_cm': pant_dir_cm,
+                        'Torax_cm': torax_cm, 'Cintura_cm': cintura_cm, 'Abdomen_cm': circ_abdom_cm, 'Quadril_cm': quadril_cm}
+        new_data_list = list(new_data_dic.values())[1:]
+        new_data_list.insert(0, str(data))
+
+        add_row_spreadsheet(new_data_list)        
+
+        st.session_state.df = st.session_state.df.append(new_data_dic, ignore_index=True)
         st.session_state.df['Data'] = st.session_state.df['Data'].astype('datetime64')
 
         st.subheader(f'Dados inseridos em {data}:')
         st.text(f'Peso (kg): {peso}')
+        st.text(f'Percentual de massa magra: {massa_magra_perc}')
+        st.text(f'Massa magra (kg): {massa_magra_kg}')
+        st.text(f'Percentual de gorgura: {fat_perc}')
+        st.text(f'Massa de gordura (kg): {fat_kg}')        
         st.text(f'Percentual de músculo: {musc_perc}')
         st.text(f'Massa muscular (kg): {musc_kg}')
-        st.text(f'Percentual de gorgura: {fat_perc}')
-        st.text(f'Massa de gordura (kg): {fat_kg}')
+        st.text(f'Índice de gordura visceral: {gord_visc_ind}')
+        st.text(f'Braço esquerdo (cm): {braco_esq_cm}')
+        st.text(f'Braço direito (cm): {braco_dir_cm}')
+        st.text(f'Perna esquerda (cm): {perna_esq_cm}')
+        st.text(f'Perna direita (cm): {perna_dir_cm}')
+        st.text(f'Panturilha esquerda (cm): {pant_esq_cm}')
+        st.text(f'Panturilha direita (cm): {pant_dir_cm}')
+        st.text(f'Tórax (cm): {torax_cm}')
+        st.text(f'Cintura (cm): {cintura_cm}')
+        st.text(f'Abdômen (cm): {circ_abdom_cm}')
+        st.text(f'Quadril (cm): {quadril_cm}')
+        
+        
+
 
 
         
