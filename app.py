@@ -35,6 +35,7 @@ def load_spreadsheet():
 
     return df
 
+@st.cache_data
 def add_row_spreadsheet(new_data_list):
     gspread_credentials_str = os.getenv("GSPREAD_CREDENTIALS")
     # gspread_credentials_str = st.secrets("GSPREAD_CREDENTIALS")
