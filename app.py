@@ -145,7 +145,7 @@ with tab2:
 
     LinReg = LinearRegression().fit(X_train, y_train)
 
-    X_future = np.arange(X_train.take(-1), 365*2, 30).reshape(-1, 1)
+    X_future = np.arange(X_train.take(-1), 365*3, 30).reshape(-1, 1)
     y_future = LinReg.predict(X_future)
 
     df_future = pd.DataFrame()
@@ -190,7 +190,7 @@ with tab3:
 
         LinReg = LinearRegression().fit(X_train, y_train)
 
-        X_future = np.arange(X_train.take(-1), 365*2, 30).reshape(-1, 1)
+        X_future = np.arange(X_train.take(-1), 365*3, 30).reshape(-1, 1)
         y_future = LinReg.predict(X_future)
 
         df_future = pd.DataFrame()
@@ -229,7 +229,7 @@ with tab3:
 
         LinReg = LinearRegression().fit(X_train, y_train)
 
-        X_future = np.arange(X_train.take(-1), 365*2, 30).reshape(-1, 1)
+        X_future = np.arange(X_train.take(-1), 365*3, 30).reshape(-1, 1)
         y_future = LinReg.predict(X_future)
 
         df_future = pd.DataFrame()
@@ -271,7 +271,7 @@ with tab4:
 
         LinReg = LinearRegression().fit(X_train, y_train)
 
-        X_future = np.arange(X_train.take(-1), 365*2, 30).reshape(-1, 1)
+        X_future = np.arange(X_train.take(-1), 365*3, 30).reshape(-1, 1)
         y_future = LinReg.predict(X_future)
 
         df_future = pd.DataFrame()
@@ -310,7 +310,7 @@ with tab4:
 
         LinReg = LinearRegression().fit(X_train, y_train)
 
-        X_future = np.arange(X_train.take(-1), 365*2, 30).reshape(-1, 1)
+        X_future = np.arange(X_train.take(-1), 365*3, 30).reshape(-1, 1)
         y_future = LinReg.predict(X_future)
 
         df_future = pd.DataFrame()
